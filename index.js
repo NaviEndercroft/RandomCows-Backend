@@ -13,8 +13,6 @@ const app = express();
 
 // Variables desde entorno
 const port = process.env.PORT || 3000;
-const uploadFolder = process.env.UPLOAD_DIR || 'uploads';
-console.log('Directorio de subida:', process.env.UPLOAD_DIR);
 
 // Para que __dirname funcione con ESModules
 const __filename = fileURLToPath(import.meta.url);
@@ -25,7 +23,12 @@ app.use(cors());
 app.use(express.json());
 
 // Crear carpeta 'uploads' si no existe
-const uploadDir = path.join(__dirname, uploadFolder);
+// NUEVO: usar ruta absoluta de variable de entorno o fallback local
+
+const uploadDir = process.env.UPLOAD_DIR_PATH || path.join(__dirname, 'uploads');
+console.log('Directorio de subida:', process.env.UPLOAD_DIR_PATH);
+
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
@@ -50,11 +53,11 @@ app.post('/upload', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No se subió ningún archivo' });
   }
-  const relativePath = `/${process.env.UPLOAD_DIR || 'uploads'}/${req.file.filename}`;
+  const filePath = `/images/${req.file.filename}`; // Cambiamos esto si querés servir desde ahí
   res.json({
     message: 'Imagen subida correctamente',
     filename: req.file.filename,
-    path: relativePath,
+    path: filePath,
   });
 });
 
@@ -73,7 +76,7 @@ app.get('/ls', (req, res) => {
 });
 
 // Servir archivos estáticos desde la carpeta uploads
-app.use(`/${process.env.UPLOAD_DIR || 'uploads'}`, express.static(uploadDir));
+app.use(`/images`, express.static(uploadDir));
 
 // Iniciar servidor
 app.listen(port, () => {
