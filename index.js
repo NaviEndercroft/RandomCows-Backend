@@ -65,13 +65,34 @@ app.get('/', (req, res) => {
   res.send('API de subida de imágenes en funcionamiento');
 });
 
-// Ruta para hacer ls del root directory
-app.get('/ls', (req, res) => {
+// Ruta para hacer ls del images/uploads directory
+app.get('/ls-uploads', (req, res) => {
   fs.readdir(uploadDir, (err, files) => {
     if (err) {
       return res.status(500).json({ error: 'Error al leer el directorio' });
     }
     res.json({files, directory: uploadDir });
+  });
+});
+
+// Get a random image from the upload directory
+app.get('/random-cow', (req, res) => {
+  fs.readdir(uploadDir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al leer el directorio' });
+    }
+    const randomFile = files[Math.floor(Math.random() * files.length)];
+    const filePath = `/images/${ randomFile }`;
+    res.json({url: filePath});
+  });
+});
+
+app.get('/ls-root', (req, res) => {
+  fs.readdir('/', (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al leer el directorio' });
+    }
+    res.json({files, directory: '/' });
   });
 });
 
