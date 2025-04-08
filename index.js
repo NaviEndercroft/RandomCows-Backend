@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { db } from './db.js';
 import dotenv from 'dotenv';
 
 // Cargar variables del .env
@@ -94,6 +95,30 @@ app.get('/ls-root', (req, res) => {
     }
     res.json({files, directory: '/' });
   });
+});
+
+app.get('/ls', (req, res) => {
+  const dir = req.query.dir || '/';
+  fs.readdir(dir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al leer el directorio' });
+    }
+    res.json({files, directory: dir });
+  });
+});
+
+app.post('/like/:image', async (req, res) => {
+  const image = req.params.image;
+  try {
+    const [result] = await db.execute(
+      'INSERT INTO image_likes (image_name) VALUES (?)',
+      [image]
+    );
+    res.json({ success: true, id: result.insertId });
+  } catch (err) {
+    console.error('Error al guardar like:', err);
+    res.status(500).json({ success: false, error: 'Error en el servidor' });
+  }
 });
 
 // Servir archivos estáticos desde la carpeta uploads
